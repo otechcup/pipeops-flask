@@ -53,8 +53,8 @@ def make_shell_context():
 
 
 if __name__ == "__main__":
-    bite_express_app.run(host='0.0.0.0', debug=False)
-    
-    # Use PORT environment variable if available, or default to 5000
-    #port = int(os.environ.get('PORT', 5000))
-    #app.run( port=port)
+    bite_express_app.run(
+        host="0.0.0.0", 
+        port=config("PORT", default=5000, cast=int),
+        debug=False,
+    )
