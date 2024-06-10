@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
 from flask_restx import fields
 
-from .routes import menu, biteexer
+from .routes import menu, biteexer, order_history
+from bite_express.utils import NullableString
 
 
 menu_form_model = menu.model(
-    "Bite Express Menu",
+    "BiteExpress Menu",
     {
         'bitem': fields.String(required=True, min_length=2, max_length=20),
         'status': fields.String(required=True, min_length=2, max_length=13),
@@ -30,10 +31,11 @@ menu_form_model = menu.model(
         'category': fields.String(required=True, min_length=2, max_length=100),
         'price': fields.Arbitrary(required=True),
         'average_prep_time': fields.String(required=True, min_length=8),
+        'offer': NullableString(max_length=20),
     },
 )
-vendor_menu_model = menu.inherit(
-    "Bite Vendor Menu",
+bitex_vendor_menu_model = menu.inherit(
+    "BitexVendor Menu",
     menu_form_model,
     {
         'id': fields.Integer(required=True),
@@ -41,6 +43,9 @@ vendor_menu_model = menu.inherit(
             required=True, min_length=2, max_length=200
         ),
         'bitem_id': fields.String(required=True, max_length=14),
+        'quantity': fields.Integer(required=True),
+        'liked_by': fields.List(fields.String(), required=True),
+        'viewed_by': fields.List(fields.String(), required=True),
         'date_added': fields.DateTime(required=True),
         'date_updated': fields.DateTime(required=True),
     },
@@ -126,17 +131,33 @@ wallet_model = biteexer.model(
         'date_updated': fields.DateTime(required=True),
     },
 )
-order_history_model = biteexer.model(
-    "BiteExer Order History",
+
+biteexpress_order_history_form_model = order_history.model(
+    "BiteExpress Order History Form",
     {
-        'id': fields.Integer(required=True),
-        'status': fields.String(required=True, min_length=2, max_length=8),
         'bitem_id': fields.String(required=True, min_length=2, max_length=20),
         'price': fields.Arbitrary(required=True),
-        'prep_time': fields.Integer(required=True),
+        'quantity': fields.Integer(required=True),
         'destination': fields.String(
             required=True, min_length=2, max_length=200
         ),
+    },
+)
+order_history_form_model = order_history.model(
+    "BiteExpress Order History",
+    {
+        'order_history': fields.List(
+            fields.Nested(biteexpress_order_history_form_model), required=True
+        ),
+    },
+)
+order_history_model = order_history.inherit(
+    "BitexUser-BitexAgent Order History",
+    biteexpress_order_history_form_model,
+    {
+        'id': fields.Integer(required=True),
+        'status': fields.String(required=True, min_length=2, max_length=8),
+        'prep_time': fields.Integer(required=True),
         'driver': fields.String(required=True, max_length=14),
         'delivery_time': fields.Integer(required=True),
         'delivered': fields.Boolean(required=True),
@@ -164,7 +185,7 @@ biteexer_model = biteexer.model(
     "BiteExer Profile Information",
     {
         'id': fields.Integer(required=True),
-        'referral_id': fields.String(required=True, max_length=15),
+        'referrer_id': fields.String(required=True, max_length=15),
         'kitchen_id': fields.String(required=True, max_length=15),
         'bite_id': fields.String(required=True, max_length=15),
         'account_status': fields.String(

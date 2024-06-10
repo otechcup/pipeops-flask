@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
@@ -23,7 +23,7 @@ from bite_express.account.utils import (
     secure_biteexer_acccount, create_biteexer_wallet
 )
 from bite_express.dbmodel import (
-    BiteVendor, BiteExerLocation
+    BitexVendor, BiteExerLocation
 )
 from bite_express.utils import vendor_model
 
@@ -36,10 +36,10 @@ class Vendors(Resource):
         Get a list of all Vendors
         """
         vendors = (
-            db.session.query(BiteVendor, BiteExerLocation)
+            db.session.query(BitexVendor, BiteExerLocation)
                 .join(
                     BiteExerLocation,
-                    BiteVendor.bite_id==BiteExerLocation.bite_id,
+                    BitexVendor.bite_id==BiteExerLocation.bite_id,
                 )
                 .all()
         )
@@ -51,17 +51,17 @@ class Vendors(Resource):
         for vendor in vendors:
             # make this usable
             vendor_dict = {
-                'id': vendor.BiteVendor.id,
-                'bite_id': vendor.BiteVendor.bite_id,
-                'kitchen_name': vendor.BiteVendor.kitchen_name,
-                'website_url': vendor.BiteVendor.website_url,
-                'logo': vendor.BiteVendor.logo,
-                'bio': vendor.BiteVendor.bio,
-                'opening_hour': vendor.BiteVendor.opening_hour,
-                'closing_hour': vendor.BiteVendor.closing_hour,
-                'rating': vendor.BiteVendor.rating,
-                'date_created': vendor.BiteVendor.date_created,
-                'date_updated': vendor.BiteVendor.date_updated,
+                'id': vendor.BitexVendor.id,
+                'bite_id': vendor.BitexVendor.bite_id,
+                'kitchen_name': vendor.BitexVendor.kitchen_name,
+                'website_url': vendor.BitexVendor.website_url,
+                'logo': vendor.BitexVendor.logo,
+                'bio': vendor.BitexVendor.bio,
+                'opening_hour': vendor.BitexVendor.opening_hour,
+                'closing_hour': vendor.BitexVendor.closing_hour,
+                'rating': vendor.BitexVendor.rating,
+                'date_created': vendor.BitexVendor.date_created,
+                'date_updated': vendor.BitexVendor.date_updated,
                 'location': {
                     'id': vendor.BiteExerLocation.id,
                     'country': vendor.BiteExerLocation.country,
@@ -93,7 +93,7 @@ class Vendors(Resource):
         basic_info = add_basic_info(biteexer, form_data)
         account_security = secure_biteexer_acccount(biteexer, form_data)
         wallet = create_biteexer_wallet(biteexer)
-        create_vendor = BiteVendor(bite_id=biteexer.bite_id)
+        create_vendor = BitexVendor(bite_id=biteexer.bite_id)
 
         # add all biteexer data to db
         biteexer.add()
@@ -115,28 +115,28 @@ class Vendor(Resource):
         """
         try:
             vendor = (
-                db.session.query(BiteVendor, BiteExerLocation)
-                    .filter(BiteVendor.bite_id==kitchen_name)
+                db.session.query(BitexVendor, BiteExerLocation)
+                    .filter(BitexVendor.bite_id==kitchen_name)
                     .join(
                         BiteExerLocation,
-                        BiteVendor.bite_id==BiteExerLocation.bite_id,
+                        BitexVendor.bite_id==BiteExerLocation.bite_id,
                     )
                     .one()
             )
             
             # serialize vendor data into a dictionary
             result = {
-                'id': vendor.BiteVendor.id,
-                'bite_id': vendor.BiteVendor.bite_id,
-                'kitchen_name': vendor.BiteVendor.kitchen_name,
-                'website_url': vendor.BiteVendor.website_url,
-                'logo': vendor.BiteVendor.logo,
-                'bio': vendor.BiteVendor.bio,
-                'opening_hour': vendor.BiteVendor.opening_hour,
-                'closing_hour': vendor.BiteVendor.closing_hour,
-                'rating': vendor.BiteVendor.rating,
-                'date_created': vendor.BiteVendor.date_created,
-                'date_updated': vendor.BiteVendor.date_updated,
+                'id': vendor.BitexVendor.id,
+                'bite_id': vendor.BitexVendor.bite_id,
+                'kitchen_name': vendor.BitexVendor.kitchen_name,
+                'website_url': vendor.BitexVendor.website_url,
+                'logo': vendor.BitexVendor.logo,
+                'bio': vendor.BitexVendor.bio,
+                'opening_hour': vendor.BitexVendor.opening_hour,
+                'closing_hour': vendor.BitexVendor.closing_hour,
+                'rating': vendor.BitexVendor.rating,
+                'date_created': vendor.BitexVendor.date_created,
+                'date_updated': vendor.BitexVendor.date_updated,
                 'location': {
                     'id': vendor.BiteExerLocation.id,
                     'country': vendor.BiteExerLocation.country,
@@ -163,16 +163,16 @@ class Vendor(Resource):
             form_data = request.get_json()
             
             vendor = (
-                db.session.query(BiteVendor, BiteExerLocation)
-                    .filter(BiteVendor.bite_id==kitchen_name)
+                db.session.query(BitexVendor, BiteExerLocation)
+                    .filter(BitexVendor.bite_id==kitchen_name)
                     .join(
                         BiteExerLocation,
-                        BiteVendor.bite_id==BiteExerLocation.bite_id,
+                        BitexVendor.bite_id==BiteExerLocation.bite_id,
                     )
                     .one()
             )
            
-            vendor.BiteVendor.update(form_data.get("vendor")) 
+            vendor.BitexVendor.update(form_data.get("vendor")) 
             vendor.BiteExerLocation.update(form_data.get("vendor"))
             
             return vendor
@@ -187,16 +187,16 @@ class Vendor(Resource):
         """
         try:
             vendor = (
-                db.session.query(BiteVendor, BiteExerLocation)
-                    .filter(BiteVendor.bite_id==kitchen_name)
+                db.session.query(BitexVendor, BiteExerLocation)
+                    .filter(BitexVendor.bite_id==kitchen_name)
                     .join(
                         BiteExerLocation,
-                        BiteVendor.bite_id==BiteExerLocation.bite_id,
+                        BitexVendor.bite_id==BiteExerLocation.bite_id,
                     )
                     .one()
             )
            
-            vendor.BiteVendor.delete()
+            vendor.BitexVendor.delete()
             vendor.BiteExerLocation.delete()
             
             return vendor

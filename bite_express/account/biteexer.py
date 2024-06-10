@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
 from flask_restx import Resource, abort
 from flask_jwt_extended import jwt_required
-import sqlalchemy
 
 from .routes import biteexer
 from .forms import biteexer_model
@@ -23,13 +22,13 @@ from bite_express.dbmodel import BiteExer
 from bite_express.settings.current_biteexer import current_biteexer
 
 
-@biteexer.route("/", methods=["GET", "PUT"])
-class BiteEr(Resource):
-    @biteexer.marshal_with(biteexer_model)
-    @jwt_required
+@biteexer.route("", methods=["GET"])  # backup (@biteexer.route("/", methods=["GET", "PUT"]))
+class BiteExer_(Resource):
+    @biteexer.marshal_list_with(biteexer_model)  # backup (@biteexer.marshal_with(biteexer_model))
+    @jwt_required()
     def get(self):
         """
-        Get all profile information of a specific BiteExer
+        Get all profile information of a BiteExer
         """
         try:
             biteexer = current_biteexer()
@@ -39,12 +38,16 @@ class BiteEr(Resource):
             )
             
             return profile_info
-        except sqlalchemy.orm.exc.NoResultFound:
+        except Exception:
             abort(404)
-    
-    
-    # def put(self):
-    #     """
-    #     Update BiteExer profile information
-    #     """
-    #     pass
+
+
+@biteexer.route("/wallet/balance/top-up", methods=["POST"])
+class WalletBalanceTopUp(Resource):
+    @biteexer.marshal_list_with(biteexer_model)
+    @jwt_required()
+    def post(self):
+        """
+        Top-up BiteExer wallet balance
+        """
+        pass

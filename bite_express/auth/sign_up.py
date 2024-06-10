@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
 __version__ = "os.environ['BITE_EXPRESS_VERSION')"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
+__email__ = "info@biteexpress.ng"
 __status__ = "os.environ['BITE_EXPRESS_ENVIRONMENT_STATUS')"
 
 
 # import modules
 from flask_restx import Resource
 from flask import request, jsonify, make_response
-from flask_jwt_extended import jwt_optional
+from flask_jwt_extended import jwt_required
 
-from os import urandom
+import secrets
 
 from .routes import auth
 from .utils import hash_biteexer_password
@@ -26,18 +26,17 @@ from bite_express.settings.current_biteexer import current_biteexer
 from bite_express.permission.checker import is_authenticated
 from bite_express.dbmodel import (
     BiteExer, BiteExerAccountPrivilege, BiteExerBasicInfo, BiteExerWallet,
-    BiteExerAccountSecurity, BiteVendor, BiteDriver
+    BiteExerAccountSecurity, BitexVendor, BitexDriver
 )
 
 
 @auth.route("/sign-up", methods=["POST"])
 class SignUp(Resource):
     @auth.expect(signup_model, validate=True)
-    @jwt_optional
+    @jwt_required(optional=True)
     def post(self):
         """
-        Create a BiteExer account for (BiteEr, Vendor, Driver) base on their account\
-        privilege title
+        Create a BiteExer account for (BitexUser, BitexVendor, BitexDriver, BitexAgent) base on their account privilege title
         """
         biteexer = current_biteexer()
         _is_authenticated = is_authenticated(biteexer)
@@ -50,10 +49,10 @@ class SignUp(Resource):
         form_data = request.get_json()
         form_errors = []
         
-        validate_referral_id = (
+        validate_referrer_id = (
             BiteExer.query
                 .filter_by(
-                    bite_id=form_data["referral_id"].upper().strip()
+                    bite_id=form_data["referrer_id"].upper().strip()
                 )
                 .first()
         )
@@ -72,11 +71,11 @@ class SignUp(Resource):
                 .first()
         )
         
-        if validate_referral_id is None:
+        if validate_referrer_id is None:
             form_errors.append(
                 {
                     'message': "Bite ID does not exist. Kindly verify if the Bite ID you enter is correct and existing.",
-                    'field': "referral_id",
+                    'field': "referrer_id",
                 },
             )
             
@@ -96,7 +95,9 @@ class SignUp(Resource):
                 }
             )
         
-        if form_data["title"].strip() not in ["BiteEr", "Vendor", "Driver"]:
+        if (form_data["title"].strip()
+            not in ["BitexUser", "BitexVendor", "BitexDriver", "BitexAgent"]
+        ):
             form_errors.append(
                 {
                     'message': "BiteExer title does not exist. Use a different one.",
@@ -115,22 +116,31 @@ class SignUp(Resource):
         if form_errors:
             return make_response(jsonify(form_errors), 422)
         
+        if form_data["middle_name"] == None or " ":
+            middle_name = None
+        else:
+            middle_name = form_data["middle_name"].title().strip()
+        # backup this was commented out (
         # if form_data["middle_name"] == None or " ":
         #     middle_name = None
         # else:
         #     middle_name = form_data["middle_name"].title().strip()
+        # )
         
-        unique_id = urandom(5).hex()
+        unique_id = secrets.token_hex(5)
         bite_id = unique_id[0:5] + "-BTE-" + unique_id[5:10]
         
         biteexer_account = BiteExer(
-            referral_id=form_data["referral_id"].upper().strip(),
+            referrer_id=form_data["referrer_id"].upper().strip(),
             bite_id=bite_id.upper(),
             first_name=form_data["first_name"].title().strip(),
-            middle_name=(
-                None if form_data["middle_name"] == None or " "
-                else form_data["middle_name"].title().strip()
-            ),
+            middle_name=middle_name,
+            # backup (
+            # middle_name=(
+            #    None if form_data["middle_name"] == None or " "
+            #    else form_data["middle_name"].title().strip()
+            # ),
+            # )
             last_name=form_data["last_name"].title().strip(),
         )
         account_privilege = BiteExerAccountPrivilege(
@@ -154,14 +164,18 @@ class SignUp(Resource):
         secure_account.add()
         wallet.add()
         
-        if account_privilege.title == "Vendor":
-            vendor_account = BiteVendor(bite_id=biteexer_account.bite_id)
+        if account_privilege.title == "BitexVendor":
+            bitex_vendor_account = BitexVendor(
+                bite_id=biteexer_account.bite_id
+            )
             
-            vendor_account.add()
-        elif account_privilege.title == "Driver":
-            driver_account = BiteDriver(bite_id=biteexer_account.bite_id)
+            bitex_vendor_account.add()
+        elif account_privilege.title == "BitexDriver":
+            bitex_driver_account = BitexDriver(
+                bite_id=biteexer_account.bite_id
+            )
         
-            driver_account.add()
+            bitex_driver_account.add()
         
         return make_response(
             jsonify({'message': "BiteExer account created successfully."}), 201

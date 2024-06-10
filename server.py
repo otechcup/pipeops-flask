@@ -1,23 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
+from decouple import config
+
 from bite_express import create_bite_express_app, db
 from bite_express.dbmodel import *
+from bite_express.config import *
 
 
-bite_express_app = create_bite_express_app()
+# Set the appropriate config based on the environment settings
+configs = {
+    'development': DevConfig,
+    'testing': TestConfig,
+    'production': ProdConfig,
+}
+env = config("BITE_EXPRESS_ENVIRONMENT_STATUS", cast=str).lower()
+use_config = configs[env]    
+bite_express_app = create_bite_express_app(use_config)
 
 
 @bite_express_app.shell_context_processor
@@ -29,17 +40,17 @@ def make_shell_context():
         'BiteExerBasicInfo': BiteExerBasicInfo,
         'BiteExerLocation': BiteExerLocation,
         'BiteExerAccountSecurity': BiteExerAccountSecurity,
-        'BiteVendor': BiteVendor,
+        'BitexVendor': BitexVendor,
         'BiteExerCreditCard': BiteExerCreditCard,
         'BiteExerWallet': BiteExerWallet,
-        'BiteVendorMenu': BiteVendorMenu,
+        'BitexVendorMenu': BitexVendorMenu,
         'BiteExerOrderHistory': BiteExerOrderHistory,
-        'BiteDriver': BiteDriver,
-        'BiteDriverVehicle': BiteDriverVehicle,
+        'BitexDriver': BitexDriver,
+        'BitexDriverVehicle': BitexDriverVehicle,
         'BiteExpressExpenditure': BiteExpressExpenditure,
         'BiteExerTransactionHistory': BiteExerTransactionHistory,
     }
 
 
 if __name__ == "__main__":
-    bite_express_app.run(debug=True)
+    bite_express_app.run(debug=False)
