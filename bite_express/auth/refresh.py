@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
 from flask_restx import Resource
-from flask_jwt_extended import jwt_refresh_token_required, create_access_token
+from flask_jwt_extended import jwt_required, create_access_token
 from flask import jsonify, make_response
 
 from .routes import auth
@@ -24,7 +24,7 @@ from bite_express.settings.current_biteexer import current_biteexer
 
 @auth.route("/refresh", methods=["POST"])
 class Refresh(Resource):
-    @jwt_refresh_token_required
+    @jwt_required(refresh=True)
     def post(self):
         """
         Refresh BiteExer account authentication and authorization

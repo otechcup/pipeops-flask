@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
 __version__ = "os.environ['BITE_EXPRESS_VERSION')"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
+__email__ = "info@biteexpress.ng"
 __status__ = "os.environ['BITE_EXPRESS_ENVIRONMENT_STATUS')"
 
 
@@ -16,7 +16,7 @@ __status__ = "os.environ['BITE_EXPRESS_ENVIRONMENT_STATUS')"
 from flask_restx import Resource
 from flask import request, jsonify, make_response
 from flask_jwt_extended import (
-    create_access_token, create_refresh_token, jwt_optional
+    create_access_token, create_refresh_token, jwt_required
 )
 
 from bite_express import bcrypt
@@ -30,7 +30,7 @@ from .routes import auth
 @auth.route("/sign-in", methods=["POST"])
 class SignIn(Resource):
     @auth.expect(signin_model, validate=True)
-    @jwt_optional
+    @jwt_required(optional=True)
     def post(self):
         """
         Authenticate and authorize a BiteExer account
@@ -79,12 +79,9 @@ class SignIn(Resource):
                 jsonify(
                     {
                         'message': (
-                            "Email Address: {} or Password: {} - (is incorrect!). Kindly provide a valid sign in "
-                            "credentials.".format(
-                                form_data["email_address"].lower().strip(),
-                                form_data["password"],
-                            )
+                            f"Email Address: {form_data['email_address'].lower().strip()} or Password: {form_data['password']} - "
+                            "(is incorrect!). Kindly provide a valid sign in credentials."
                         ),
                     },
-                ), 401
+                ), 422
             )

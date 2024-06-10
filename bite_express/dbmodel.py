@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Bite Express App
+# BiteExpress App
 
 
 __author__ = "PhoenixITng"
-__copyright__ = "Copyright 2023 - datetime.utcnow().year, {}".format(__author__)
+__copyright__ = f"Copyright 2023 - datetime.utcnow().year, {__author__}"
 __credits__ = ["Mr. O"]
-__version__ = "os.environ.get('BITE_EXPRESS_VERSION')"
+__version__ = "config('BITE_EXPRESS_VERSION', cast=float)"
 __maintainer__ = __author__
-__email__ = "support@bitexpress.ng"
-__status__ = "os.environ.get('BITE_EXPRESS_ENVIRONMENT_STATUS')"
+__email__ = "info@biteexpress.ng"
+__status__ = "config('BITE_EXPRESS_ENVIRONMENT_STATUS', cast=str)"
 
 
 # import modules
@@ -28,26 +28,28 @@ All bite id are generated with this format:
 00000-BTE-00000
 Their unique id, follow by BiteExpress short form
 
-kitchen id column is used to store BiteExpress vendor staffs and it is changable
+kitchen id column is used to store BitexVendor staffs and it is changable
 
 Account status column helps to define the different states of BiteExer account.
 Different rules can be applied to the account based on their account status, in order to better manage data entry.
 Examples of account status include:
-'Active', 'Inactive', 'Pre-Active', 'Suspended', 'Banned', 'Freezed' "Deactivated"...
+"Activ", "Inactive", "Pre-Active", "Suspended", "Banned", "Freezed" "Deactivated"...
 
-BiteExer account will be 'Pre-Active' if they are yet to verify their email address.
+BiteExer account will be "Pre-Active" if they are yet to verify their email address.
 """
-class BiteExer(db.Model):  # BiteExer
+class BiteExer(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-    referral_id = db.Column(db.String(15))
+    referrer_id = db.Column(db.String(15))
     kitchen_id = db.Column(db.String(15))
     bite_id = db.Column(db.String(15), unique=True, nullable=False)
     account_status = db.Column(
-        db.String(100), default='Pre-Active', nullable=False
+        db.String(100), default="Pre-Active", nullable=False
     )
     first_name = db.Column(db.String(100), nullable=False)
     middle_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100), nullable=False) 
+    last_name = db.Column(db.String(100), nullable=False)
     last_seen = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date_created = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow
@@ -58,7 +60,7 @@ class BiteExer(db.Model):  # BiteExer
 
 
     def __repr__(self):
-        return "BiteExer(Bite ID: '{bite_id}')".format(bite_id=self.bite_id)
+        return f"BiteExer(Bite ID: {self.bite_id})"
 
 
     @classmethod
@@ -129,19 +131,19 @@ class BiteExer(db.Model):  # BiteExer
         "BiteExerAccountSecurity", backref="_account_security", uselist=False
     )
     wallet = db.relationship("BiteExerWallet", backref="_wallet", uselist=False)
-    vendor = db.relationship("BiteVendor", backref="_vendor", uselist=False)
+    vendor = db.relationship("BitexVendor", backref="_vendor", uselist=False)
     credit_card = db.relationship(
-        "BiteExerCreditCard", backref='_credit_card', lazy=True
+        "BiteExerCreditCard", backref="_credit_card", lazy=True
     )
     order_history = db.relationship(
         "BiteExerOrderHistory", backref="_order_history", lazy=True
     )
-    driver = db.relationship("BiteDriver", backref="_driver", uselist=False)
+    driver = db.relationship("BitexDriver", backref="_driver", uselist=False)
     expenditure = db.relationship(
         "BiteExpressExpenditure", backref="allocated_expenditure", lazy=True
     )
     transaction_history = db.relationship(
-        'BiteExerTransactionHistory', backref='_transaction_history', lazy=True
+        "BiteExerTransactionHistory", backref="_transaction_history", lazy=True
     )
 
 
@@ -149,12 +151,14 @@ class BiteExer(db.Model):  # BiteExer
 BiteExer account privilege table this give privileges to BiteExer, giving them access right on BiteExpress.
 
 role: BiteExer, Admin
-title: Driver, BiteEr, Vendor
+title: "BitexUser", "BitexVendor", "BitexDriver", "BitexAgent"
 
 Where the permission column consist of list of admin pages they can access and the title column takes the title of the job
 assign to them or department they belong too.
 """
 class BiteExerAccountPrivilege(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     status = db.Column(db.String(100), default="Active", nullable=False)
     bite_id = db.Column(
@@ -214,6 +218,8 @@ class BiteExerAccountPrivilege(db.Model):
 
 
 class BiteExerBasicInfo(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), unique=True,
@@ -258,6 +264,8 @@ class BiteExerBasicInfo(db.Model):
 
 
 class BiteExerLocation(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), unique=True,
@@ -298,6 +306,8 @@ class BiteExerLocation(db.Model):
 
 
 class BiteExerAccountSecurity(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), unique=True,
@@ -330,7 +340,9 @@ class BiteExerAccountSecurity(db.Model):
 """
 account status: Not Verified, Verified
 """
-class BiteVendor(db.Model):
+class BitexVendor(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     account_status = db.Column(
         db.String(12), default="Not Verified", nullable=False
@@ -403,11 +415,13 @@ class BiteVendor(db.Model):
     
     # relationships logic
     menu = db.relationship(
-        "BiteVendorMenu", backref="_menu", lazy=True
+        "BitexVendorMenu", backref="_menu", lazy=True
     )
 
 
 class BiteExerCreditCard(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), nullable=False
@@ -454,6 +468,8 @@ class BiteExerCreditCard(db.Model):
 
 
 class BiteExerWallet(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), nullable=False,
@@ -494,8 +510,15 @@ class BiteExerWallet(db.Model):
         db.session.commit()
         
         
-    def update_wallet_balance(self, wallet_balance):
-        self.wallet_balance = wallet_balance
+    def credit_wallet_balance(self, credit):
+        self.wallet_balance += credit
+        self.date_updated = datetime.utcnow()
+        
+        db.session.commit()
+    
+        
+    def debit_wallet_balance(self, debit):
+        self.wallet_balance -= debit
         self.date_updated = datetime.utcnow()
         
         db.session.commit()
@@ -554,14 +577,17 @@ class BiteExerWallet(db.Model):
 status: Available, Not Available, Deleted
 
 Only bitem without order history can be deleted permanently from this table, while bitem with order history, if a delete action is
-being triggered on it, only the status column will be updated to deleted, which means it will not be visible on search results or for the vendor.
-only biters that order the bitem will be able to view the menu.
+being triggered on it, only the status column will be updated to deleted, which means it will not be visible on search results
+or for the BitexVendor. only BitexUser that order the bitem will be able to view the menu.
 """
-class BiteVendorMenu(db.Model):
+class BitexVendorMenu(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     status = db.Column(db.String(13), default="Available", nullable=False)
     kitchen_name = db.Column(
-        db.String(200), db.ForeignKey("bite_vendor.bite_id"), nullable=False,
+        db.String(200), db.ForeignKey("bitex_vendor.kitchen_name"),
+        nullable=False,
     )
     bitem_id = db.Column(db.String(14), unique=True, nullable=False)
     bitem = db.Column(db.String(20), nullable=False)
@@ -574,7 +600,15 @@ class BiteVendorMenu(db.Model):
         db.Numeric(precision=65, scale=2, decimal_return_scale=2),
         nullable=False, default=0.00
     )
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    offer = db.Column(db.String(20))
     average_prep_time = db.Column(db.Time, nullable=False)
+    liked_by = db.Column(
+        MutableList.as_mutable(PickleType), nullable=False, default=[]
+    )
+    viewed_by = db.Column(
+        MutableList.as_mutable(PickleType), nullable=False, default=[]
+    )
     date_added = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow
     )
@@ -612,9 +646,11 @@ class BiteVendorMenu(db.Model):
 """
 status: Cancled, Accepted, Pending
 
-If a vendor refuse to accept an order within a certain time period, the order will be canceled automatically
+If a BitexVendor refuse to accept an order within a certain time period, the order will be canceled automatically
 """
 class BiteExerOrderHistory(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     status = db.Column(db.String(8), default="Pending", nullable=False)
     bite_id = db.Column(
@@ -625,6 +661,7 @@ class BiteExerOrderHistory(db.Model):
         db.Numeric(precision=65, scale=2, decimal_return_scale=2),
         nullable=False, default=0.00
     )
+    quantity = db.Column(db.Integer, nullable=False, default=0)
     prep_time = db.Column(db.Time)
     destination = db.Column(db.String(200), nullable=False)
     driver = db.Column(db.String(15))
@@ -698,7 +735,9 @@ active status: Online, Offline
 
 account status: Not Verified, Verified
 """
-class BiteDriver(db.Model):
+class BitexDriver(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     active_status = db.Column(
         db.String(7), default="Offline", nullable=False
@@ -767,7 +806,7 @@ class BiteDriver(db.Model):
     
     # relationships logic
     vehicle = db.relationship(
-        "BiteDriverVehicle", backref="_vehicle", lazy=True
+        "BitexDriverVehicle", backref="_vehicle", lazy=True
     )
 
 
@@ -778,13 +817,15 @@ vehicle type: Car, Motorcycle, Tricycle, Bicycle
 
 verification status: Approved, Pending, Not Approved
 """
-class BiteDriverVehicle(db.Model):
+class BitexDriverVehicle(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     status = db.Column(
         db.String(8), default="Inactive", nullable=False
     )
     bite_id = db.Column(
-        db.String(15), db.ForeignKey("bite_driver.bite_id"), nullable=False
+        db.String(15), db.ForeignKey("bitex_driver.bite_id"), nullable=False
     )
     type = db.Column(db.String(100), nullable=False)
     manufacturer = db.Column(db.String(20), nullable=False)
@@ -846,6 +887,8 @@ class BiteDriverVehicle(db.Model):
 
 
 class BiteExpressExpenditure(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), nullable=False
@@ -885,14 +928,14 @@ class BiteExpressExpenditure(db.Model):
         
     
     def update_creadit(self, credit):
-        self.creadit = credit
+        self.creadit += credit
         self.date_updated = datetime.utcnow()
         
         db.session.commit()
         
         
     def update_debit(self, debit):
-        self.debit = debit
+        self.debit += debit
         self.creadit -= debit
         self.date_updated = datetime.utcnow()
         
@@ -910,6 +953,8 @@ type: Creadit, Debit
 staus: Pending, Confirmed
 """
 class BiteExerTransactionHistory(db.Model):
+    __table_args__ = {'mysql_engine': "InnoDB"}
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     bite_id = db.Column(
         db.String(15), db.ForeignKey("bite_exer.bite_id"), nullable=False
@@ -920,7 +965,7 @@ class BiteExerTransactionHistory(db.Model):
         nullable=False, default=0.00
     )
     hash = db.Column(db.String(18), nullable=False, unique=True)
-    status = db.Column(db.String(9), nullable=False, default="Pending")
+    status = db.Column(db.String(9))  # backup (status = db.Column(db.String(9), nullable=False, default="Pending"))
     date_created = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow
     )    
